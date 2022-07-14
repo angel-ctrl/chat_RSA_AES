@@ -1,0 +1,230 @@
+<!DOCTYPE html> 
+<html>
+	{% load static %}
+	<head>
+		<title>Sky Forms Pro</title>
+		
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+
+		<link rel="stylesheet" href="{% static 'css/demo.css' %}">
+		<link rel="stylesheet" href="{% static 'css/font-awesome.css' %}">
+		<link rel="stylesheet" href="{% static 'css/sky-forms.css' %}">
+		<!--[if lt IE 9]>
+			<link rel="stylesheet" href="{% static 'css/sky-forms-ie8.css' %}">
+		<![endif]-->
+
+		<script src="{% static 'js/jquery.min.js' %}"></script>
+		<script src="{% static 'js/jquery.form.min.js' %}"></script>
+		<script src="{% static 'js/jquery.validate.min.js' %}"></script>
+		<script src="{% static 'js/jquery.modal.js' %}"></script>
+		<script src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
+
+    	<script src="{% static 'jsencrypt-master/bin/jsencrypt.min.js' %}"></script>
+		<!--[if lt IE 10]>
+			<script src="{% static 'js/jquery.placeholder.min.js' %}"></script>
+		<![endif]-->
+		<!--[if lt IE 9]>
+			<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+			<script src="js/sky-forms-ie8.js"></script>
+		<![endif]-->
+	</head>
+	
+	<body class="bg-cyan">
+		<div class="body body-s">		
+			<form action="#" id="sky-form" class="sky-form" method="post">
+				{% csrf_token %}
+				<header>Login form</header>
+				
+				<fieldset>					
+					<section>
+						<div class="row">
+							<label class="label col col-4">E-mail</label>
+							<div class="col col-8">
+								<label class="input">
+									<i class="icon-append fa fa-user"></i>
+									<input id="email123" type="email" name="email">
+								</label>
+							</div>
+						</div>
+					</section>
+					
+					<section>
+						<div class="row">
+							<label class="label col col-4">Password</label>
+							<div class="col col-8">
+								<label class="input">
+									<i class="icon-append fa fa-lock"></i>
+									<input id="passl123" type="password" name="password">
+								</label>
+								<div class="note"><a href="#sky-form2" class="modal-opener">Forgot password?</a></div>
+							</div>
+						</div>
+					</section>
+					
+					<section>
+						<div class="row">
+							<div class="col col-4"></div>
+							<div class="col col-8">
+								<label class="checkbox"><input type="checkbox" name="remember" checked><i></i>Keep me logged in</label>
+							</div>
+						</div>
+					</section>
+				</fieldset>
+				<footer>
+					<button onclick="postDataPost();" type="submit" class="button">Log in</button>
+					<a href="#" class="button button-secondary">Register</a>
+				</footer>
+			</form>			
+		</div>
+		
+		
+		
+		<form id="sky-form2" class="sky-form sky-form-modal">
+			<header>Password recovery</header>
+
+			<fieldset>
+				<section>
+					<label class="label">E-mail</label>
+					<label class="input">
+						<i class="icon-append fa fa-envelope-o"></i>
+						<input type="email" name="email" id="email">
+					</label>
+				</section>
+			</fieldset>
+
+			<footer>
+				<button type="submit" name="submit" class="button">Submit</button>
+				<a href="#" class="button button-secondary modal-closer">Close</a>
+			</footer>
+
+			<div class="message">
+				<i class="fa fa-check"></i>
+				<p>Your request successfully sent!<br><a href="#" class="modal-closer">Close window</a></p>
+			</div>
+		</form>
+	</body>
+</html>
+
+<script>
+
+	$("#sky-form").submit(function(e) {
+		e.preventDefault();
+	});
+
+	async function postDataPost() {
+
+		const publicKey = await fetch('http://127.0.0.1:8080/API/SendPublicKey', {
+			method: 'GET'
+		});
+
+		const contentKey = await publicKey;
+
+		var PublicKey = await contentKey.json();
+
+		var encrypter = new JSEncrypt();
+
+		encrypter.setPublicKey(PublicKey);
+
+
+		//create func with parameters
+		function encryptFunction(publickey, msg) {
+
+			var msgLength = msg.length;
+
+			var step = 510;
+
+			var finish = 0;
+
+			var result = [];
+
+			var encrypter = new JSEncrypt();
+			encrypter.setPublicKey(publickey);
+
+			for (let start = 0; start < msgLength; start+=step) {
+
+				finish = start + step;
+
+				if (finish > msgLength) {
+					finish = msgLength;
+				}
+
+				var encrypted = encrypter.encrypt(msg.slice(start,finish));
+
+				result.push(encrypted);
+			}
+
+			return result;
+		}
+
+
+		function decryptFunction(privatekey, msg) {
+
+			var msgLength = msg.length;
+
+			var step = 640;
+
+			var finish = 0;
+
+			var result = "";
+
+			var decryptobj = new JSEncrypt();
+			
+			decryptobj.setPrivateKey(private);
+
+			for (let start = 0; start < msgLength; start+=step) {
+
+				finish = start + step;
+
+				if (finish > msgLength) {
+					finish = msgLength;
+				}
+
+				var decrypter = decryptobj.decrypt(msg.slice(start,finish));
+
+				result += decrypter;
+			}
+
+			return result;
+		}
+
+
+		let result = encryptFunction(PublicKey, document.getElementById("passl123").value);
+
+		console.log(result)
+
+
+
+		var decrypt = new JSEncrypt();
+				
+		decrypt.setPrivateKey(PublicKey);
+
+		var decrypter = decrypt.encrypt(document.getElementById("passl123").value);
+
+
+
+
+
+		const rawResponse = await fetch('http://127.0.0.1:8080/API/login/v1', {
+			method: 'POST',
+			body: JSON.stringify({user: document.getElementById("email123").value,
+								  password: decrypter})
+		});
+
+		const content = await rawResponse;
+
+		var data = await content.json();
+
+	  	document.cookie = "token=" + data["token"] + ";path=/";
+
+		if (content.status >= 200 && content.status < 300) {
+			window.location.href = '/';
+		} else {
+			alert("error")
+		}
+	}
+
+</script>
+
+
+
