@@ -56,7 +56,6 @@
 
         }
 
-
         function startWebsocket() {
 
             let socket = new WebSocket("ws://127.0.0.1:8080/API/ws");
@@ -65,49 +64,6 @@
                 socket.send(JSON.stringify({
                     publicKey: publicKeyClient
                 }));
-
-                let AllFriends = GetAllFriends();
-
-                AllFriends.then(value => {
-
-                    for (var i = 0; i < value.length; i++) {
-    
-                        var Lielement = document.createElement("li");
-                        Lielement.className = "clearfix";
-                        Lielement.id = value[i]["user"];
-                
-                        var elementimg = document.createElement("img");
-                        elementimg.alt = "avatar";
-                        elementimg.src = "https://bootdey.com/img/Content/avatar/avatar2.png";
-                
-                        var elementfirstdiv = document.createElement("div");
-                        elementfirstdiv.className = "message-data";
-                
-                        var elementsecondtdiv = document.createElement("div");
-                        elementsecondtdiv.className = "name";
-                        elementsecondtdiv.appendChild(document.createTextNode(value[i]["user"]));
-                
-                        var elementthriddiv = document.createElement("div");
-                        elementthriddiv.className = "status";
-                
-                        var elementI = document.createElement("i");
-                        elementI.className = "fa fa-circle offline";
-                        elementI.id = "status"+value[i]["user"];
-                
-                        elementthriddiv.appendChild(elementI);
-                        elementthriddiv.appendChild(document.createTextNode(" left 7 mins ago"));
-                
-                        elementfirstdiv.appendChild(elementsecondtdiv);
-                        elementfirstdiv.appendChild(elementthriddiv);
-                
-                        Lielement.appendChild(elementimg);
-                        Lielement.appendChild(elementfirstdiv);
-                
-                        var divmodifed = document.getElementById("listaamigos");
-                        divmodifed.appendChild(Lielement);
-                    }
-                })
-
             };
 
             socket.onmessage = function(event) {
@@ -119,26 +75,76 @@
                     const text = JSON.parse(e.srcElement.result);
 
                     ans = Array.isArray(text);
+                        
+                    if (ans == true || text == null) {
 
-                    if (ans == true) {
+                        let AllFriends = GetAllFriends();
 
-                        for (var i = 0; i < text.length; i++) {
-                            console.log("status"+text[i]["user"])
-                            var userDiv = document.getElementById("status"+text[i]["user"]);
-                            console.log(userDiv)
-                            userDiv.className = "fa fa-circle online";
-                            map.set(text[i]["user"], text[i]["publicKey"]);
-                        }
+                        AllFriends.then(value => {
+
+                            for (var i = 0; i < value.length; i++) {
+
+                                var Lielement = document.createElement("li");
+                                Lielement.className = "clearfix";
+                                Lielement.id = value[i]["user"];
+                        
+                                var elementimg = document.createElement("img");
+                                elementimg.alt = "avatar";
+                                elementimg.src = "https://bootdey.com/img/Content/avatar/avatar2.png";
+                        
+                                var elementfirstdiv = document.createElement("div");
+                                elementfirstdiv.className = "message-data";
+                        
+                                var elementsecondtdiv = document.createElement("div");
+                                elementsecondtdiv.className = "name";
+                                elementsecondtdiv.appendChild(document.createTextNode(value[i]["user"]));
+                        
+                                var elementthriddiv = document.createElement("div");
+                                elementthriddiv.className = "status";
+                        
+                                var elementI = document.createElement("i");
+                                elementI.className = "fa fa-circle offline";
+                                elementI.id = "status"+value[i]["user"];
+                        
+                                elementthriddiv.appendChild(elementI);
+                                elementthriddiv.appendChild(document.createTextNode(" left 7 mins ago"));
+                        
+                                elementfirstdiv.appendChild(elementsecondtdiv);
+                                elementfirstdiv.appendChild(elementthriddiv);
+                        
+                                Lielement.appendChild(elementimg);
+                                Lielement.appendChild(elementfirstdiv);
+                        
+                                var divmodifed = document.getElementById("listaamigos");
+                                divmodifed.appendChild(Lielement);
+
+                                try {
+                                    var f = value.filter(function(value){ return value.user == text[i]["user"] })
+
+                                    if (Array.isArray(f) == true){
+
+                                    var userDiv = document.getElementById("status"+text[i]["user"]);
+                                    userDiv.className = "fa fa-circle online";
+                                    map.set(text[i]["user"], text[i]["publicKey"]);
+
+                                    }
+                                } catch (error) {
+                                }
+                            }
+
+                        })
 
                     } 
 
                     if (text["Disconected"] != null){
-                        console.log("se desconecto este webon: " + text["Disconected"]); 
+                        var userDiv = document.getElementById("status"+text["Disconected"]);
+                        userDiv.className = "fa fa-circle offline";
                         map.delete(text["Disconected"])
                     }
 
                     if (ans != true && text["Disconected"] == null && text["msg"] == null) {
-                        console.log("se conecto este webon: " + text["username"])
+                        var userDiv = document.getElementById("status"+text["username"]);
+                        userDiv.className = "fa fa-circle online";
                         map.set(text["username"], text["publicKey"]);
                     }
 
@@ -181,7 +187,6 @@
                                 img.src = decryptedText;
     
                             }else{
-                                console.log(text["userSender"] + ": " + decryptedText);
 
                                 var Lielement = document.createElement("li");
                                 Lielement.className = "clearfix";
@@ -230,8 +235,6 @@
                                 msgToDecrypt.delete(keyDecrypted)
     
                             }else{
-
-                                console.log(text["userSender"] + ": " + msgToDecrypt.get(keyDecrypted) + decryptedText);
 
                                 var Lielement = document.createElement("li");
                                 Lielement.className = "clearfix";
@@ -682,37 +685,8 @@
             </div>
         </li>*/
 
-        var Lielement = document.createElement("li");
-        Lielement.className = "clearfix";
+        console.log("a")
 
-        var elementimg = document.createElement("img");
-        elementimg.alt = "avatar";
-        elementimg.src = "https://bootdey.com/img/Content/avatar/avatar2.png";
-
-        var elementfirstdiv = document.createElement("div");
-        elementfirstdiv.className = "message-data";
-
-        var elementsecondtdiv = document.createElement("div");
-        elementsecondtdiv.className = "name";
-        elementsecondtdiv.appendChild(document.createTextNode("AAAA"));
-
-        var elementthriddiv = document.createElement("div");
-        elementthriddiv.className = "status";
-
-        var elementI = document.createElement("i");
-        elementI.className = "fa fa-circle offline";
-
-        elementthriddiv.appendChild(elementI);
-        elementthriddiv.appendChild(document.createTextNode(" left 7 mins ago"));
-
-        elementfirstdiv.appendChild(elementsecondtdiv);
-        elementfirstdiv.appendChild(elementthriddiv);
-
-        Lielement.appendChild(elementimg);
-        Lielement.appendChild(elementfirstdiv);
-
-        var divmodifed = document.getElementById("listaamigos");
-        divmodifed.appendChild(Lielement);
     }
 
 </script>
