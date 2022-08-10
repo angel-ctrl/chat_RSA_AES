@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-2+u-^w7ftc6kgwy=z49p^$z=1xx*vf&1h1i%zo9@ise^um#1=k
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.1.2', '127.0.0.1']
 
 
 # Application definition
@@ -56,7 +56,7 @@ ROOT_URLCONF = 'chat_socket.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['C:/Users/angel/PycharmProjects/chat_RSA_AES/templates'],
+        'DIRS': ['C:/Users/angel/OneDrive/Escritorio/chat_RSA_AES/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -121,7 +121,7 @@ STATIC_URL = '/static/'
 #STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 STATICFILES_DIRS = [
-    "C:/Users/angel/PycharmProjects/chat_RSA_AES/static"
+    "C:/Users/angel/OneDrive/Escritorio/chat_RSA_AES/static"
 ]
 
 # Default primary key field type

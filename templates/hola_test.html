@@ -33,6 +33,8 @@
 
         var map = new Map();
 
+        var msgToDecrypt = new Map();
+
         crypt = new JSEncrypt({default_key_size: 2048})
 
         privateKeyClient = crypt.getPrivateKey()
@@ -63,6 +65,49 @@
                 socket.send(JSON.stringify({
                     publicKey: publicKeyClient
                 }));
+
+                let AllFriends = GetAllFriends();
+
+                AllFriends.then(value => {
+
+                    for (var i = 0; i < value.length; i++) {
+    
+                        var Lielement = document.createElement("li");
+                        Lielement.className = "clearfix";
+                        Lielement.id = value[i]["user"];
+                
+                        var elementimg = document.createElement("img");
+                        elementimg.alt = "avatar";
+                        elementimg.src = "https://bootdey.com/img/Content/avatar/avatar2.png";
+                
+                        var elementfirstdiv = document.createElement("div");
+                        elementfirstdiv.className = "message-data";
+                
+                        var elementsecondtdiv = document.createElement("div");
+                        elementsecondtdiv.className = "name";
+                        elementsecondtdiv.appendChild(document.createTextNode(value[i]["user"]));
+                
+                        var elementthriddiv = document.createElement("div");
+                        elementthriddiv.className = "status";
+                
+                        var elementI = document.createElement("i");
+                        elementI.className = "fa fa-circle offline";
+                        elementI.id = "status"+value[i]["user"];
+                
+                        elementthriddiv.appendChild(elementI);
+                        elementthriddiv.appendChild(document.createTextNode(" left 7 mins ago"));
+                
+                        elementfirstdiv.appendChild(elementsecondtdiv);
+                        elementfirstdiv.appendChild(elementthriddiv);
+                
+                        Lielement.appendChild(elementimg);
+                        Lielement.appendChild(elementfirstdiv);
+                
+                        var divmodifed = document.getElementById("listaamigos");
+                        divmodifed.appendChild(Lielement);
+                    }
+                })
+
             };
 
             socket.onmessage = function(event) {
@@ -78,6 +123,10 @@
                     if (ans == true) {
 
                         for (var i = 0; i < text.length; i++) {
+                            console.log("status"+text[i]["user"])
+                            var userDiv = document.getElementById("status"+text[i]["user"]);
+                            console.log(userDiv)
+                            userDiv.className = "fa fa-circle online";
                             map.set(text[i]["user"], text[i]["publicKey"]);
                         }
 
@@ -111,18 +160,117 @@
 
                         var decryptedText = aesjs.utils.utf8.fromBytes(decryptedBytes);
 
+                         
+                        if (text["state"] != "finish"){
 
-                        if (decryptedText.search("data:image/jpeg;base64") != -1) {
+                            if (text["state"] == "1"){
 
-                            var img = document.getElementById("main");
+                                msgToDecrypt.set(keyDecrypted, decryptedText);
 
-                            img.src = decryptedText
+                            }else{
+                                msgToDecrypt.set(keyDecrypted, msgToDecrypt.get(keyDecrypted) + decryptedText);
+                            }
+                        }
 
-                        }else{
-                            console.log(text["userSender"] + ": " +decryptedText);
+                        if (text["state"] == "finishone"){
+
+                            if (decryptedText.search("data:image/jpeg;base64") != -1) {
+
+                                var img = document.getElementById("main");
+    
+                                img.src = decryptedText;
+    
+                            }else{
+                                console.log(text["userSender"] + ": " + decryptedText);
+
+                                var Lielement = document.createElement("li");
+                                Lielement.className = "clearfix";
+
+                                var elementfirstdiv = document.createElement("div");
+                                elementfirstdiv.className = "message-data";
+
+                                var currentdate = new Date(); 
+
+                                hour = currentdate.getHours();
+                                min = currentdate.getMinutes();
+                                var ampm = hour >= 12 ? 'pm' : 'am';
+
+                                hour = hour % 12;
+                                hour = hour ? hour : 12; // the hour '0' should be '12'
+                                min = min < 10 ? '0'+min : min;
+                                var strTime = hour + ':' + min + ' ' + ampm;
+                    
+                                var elementSpan = document.createElement("span");
+                                elementSpan.className = "message-data-time";
+                                elementSpan.appendChild(document.createTextNode(strTime));
+
+                                elementfirstdiv.appendChild(elementSpan);
+
+                                var elementlastDiv = document.createElement("div");
+                                elementlastDiv.className = "message my-message";
+                                elementlastDiv.appendChild(document.createTextNode(decryptedText));
+
+
+                                Lielement.appendChild(elementfirstdiv);
+                                Lielement.appendChild(elementlastDiv);
+
+                                var divmodifed = document.getElementById("chat-history_si");
+                                divmodifed.appendChild(Lielement);
+                            }
+                        }
+
+                        if (text["state"] == "finish"){
+
+                            if (msgToDecrypt.get(keyDecrypted).search("data:image/jpeg;base64") != -1) {
+
+                                var img = document.getElementById("main");
+    
+                                img.src = msgToDecrypt.get(keyDecrypted) + decryptedText
+
+                                msgToDecrypt.delete(keyDecrypted)
+    
+                            }else{
+
+                                console.log(text["userSender"] + ": " + msgToDecrypt.get(keyDecrypted) + decryptedText);
+
+                                var Lielement = document.createElement("li");
+                                Lielement.className = "clearfix";
+
+                                var elementfirstdiv = document.createElement("div");
+                                elementfirstdiv.className = "message-data";
+
+
+                                var elementSpan = document.createElement("span");
+                                elementSpan.className = "message-data-time";
+
+                                var currentdate = new Date(); 
+
+                                hour = currentdate.getHours();
+                                min = currentdate.getMinutes();
+                                var ampm = hour >= 12 ? 'pm' : 'am';
+                     
+                                elementSpan.appendChild(document.createTextNode(hour+":"+min+" "+ampm));
+
+                                elementfirstdiv.appendChild(elementSpan);
+
+                                var elementlastDiv = document.createElement("div");
+                                elementlastDiv.className = "message my-message";
+                                elementlastDiv.appendChild(document.createTextNode(msgToDecrypt.get(keyDecrypted) + decryptedText));
+
+
+                                Lielement.appendChild(elementfirstdiv);
+                                Lielement.appendChild(elementlastDiv);
+
+                                var divmodifed = document.getElementById("chat-history_si");
+                                divmodifed.appendChild(Lielement);
+
+                                msgToDecrypt.delete(keyDecrypted)
+                            }
+
                         }
                         
                     }
+
 
                 });
 
@@ -216,15 +364,21 @@
 
             // To print or store the binary data, you may convert it to hex
             var encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes);
-     
-            var myJson = JSON.stringify(encryptedkey);
 
-            socket.send(JSON.stringify({
-                userSender: "{{username}}",
-                msg: encryptedHex,
-                userDestination: placeholderName,
-                key: myJson
-            }));
+            if (encryptedHex.length > 2000000){
+                alert("El mensaje es demasiado grande");
+                return;
+            }else{
+                var myJson = JSON.stringify(encryptedkey);
+
+                socket.send(JSON.stringify({
+                    userSender: "{{username}}",
+                    msg: encryptedHex,
+                    userDestination: placeholderName,
+                    key: myJson,
+                    state: "finishone"
+                }));
+            }
         }
 
         function sendimage() {
@@ -233,24 +387,105 @@
             var placeholderName = document.getElementById("id_placeholder1").value;
             var youtubeimgsrc = document.getElementById("blah");
 
+            var msgImgae = youtubeimgsrc.src
+
+            var msgImgaeLen = youtubeimgsrc.src.length
+
+            var step = 1000000;
+
             const utf8Encode = new TextEncoder();
 
             var keyString = makeid(32);
             const key = utf8Encode.encode(keyString);
-
-
 
             publicKeyOfUser = map.get(placeholderName);
 
             //encrypt simetric key
             let encryptedkey = encryptFunction(publicKeyOfUser, keyString);
 
-            var textBytes = aesjs.utils.utf8.toBytes(youtubeimgsrc.src);
+            if (msgImgaeLen < step) {
+
+                console.log("de un solo coñazo")
+
+                var textBytes = aesjs.utils.utf8.toBytes(youtubeimgsrc.src);
+                var aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(5));
+                var encryptedBytes = aesCtr.encrypt(textBytes);
+
+                // To print or store the binary data, you may convert it to hex
+                var encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes);
+
+                console.log(encryptedHex.length)
+
+                var myJson = JSON.stringify(encryptedkey);
+
+                socket.send(JSON.stringify({
+                    userSender: "{{username}}",
+                    msg: encryptedHex,
+                    userDestination: placeholderName,
+                    key: myJson,
+                    state: "finishone"
+                }));
+
+            }else{
+
+                var result = ""
+
+                var finish = 0;
+
+                var count = 0;
+
+                for (let start = 0; start < msgImgaeLen; start+=step) {
+
+                    finish = start + step;
+                    count = count + 1;
+
+                    if (finish > msgImgaeLen) {
+                        finish = msgImgaeLen;
+                    }
+
+                    var textBytes = aesjs.utils.utf8.toBytes(msgImgae.slice(start,finish));
+                    var aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(5));
+                    var encryptedBytes = aesCtr.encrypt(textBytes);
+
+                    // To print or store the binary data, you may convert it to hex
+                    var encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes);
+
+                    var myJson = JSON.stringify(encryptedkey);
+
+                    if (finish == msgImgaeLen){
+                        
+                        socket.send(JSON.stringify({
+                            userSender: "{{username}}",
+                            msg: encryptedHex,
+                            userDestination: placeholderName,
+                            key: myJson,
+                            state: "finish"
+                        }));
+
+                    }else{
+
+                        socket.send(JSON.stringify({
+                            userSender: "{{username}}",
+                            msg: encryptedHex,
+                            userDestination: placeholderName,
+                            key: myJson,
+                            state: count.toString()
+                        }));
+
+                    }
+                }
+            }
+
+            
+
+            /*var textBytes = aesjs.utils.utf8.toBytes(youtubeimgsrc.src);
             var aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(5));
             var encryptedBytes = aesCtr.encrypt(textBytes);
 
             // To print or store the binary data, you may convert it to hex
             var encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes);
+
+            console.log(encryptedHex.length)
 
             var myJson = JSON.stringify(encryptedkey);
 
@@ -259,7 +494,8 @@
                 msg: encryptedHex,
                 userDestination: placeholderName,
                 key: myJson
-            }));
+            }));*/
+
         }
 
     </script>
@@ -292,9 +528,10 @@
                 </div>
 
 
-
+                <ul class="list-unstyled chat-list mt-2 mb-0" id="listaamigos">
 
                 </ul>
+
             </div>
             <div class="chat">
                 <div class="chat-header clearfix">
@@ -316,6 +553,30 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="chat-history">
+                    <ul class="m-b-0" id="chat-history_si">
+                        <li class="clearfix">
+                            <div class="message-data text-right">
+                                <span class="message-data-time">10:10 AM, Today</span>
+                            </div>
+                            <div class="message other-message float-right"> Hi Aiden, how are you? How is the project coming along? </div>
+                        </li>
+                        <li class="clearfix">
+                            <div class="message-data">
+                                <span class="message-data-time">10:12 AM, Today</span>
+                            </div>
+                            <div class="message my-message">Are we meeting today?</div>                                    
+                        </li>                               
+                        <li class="clearfix">
+                            <div class="message-data">
+                                <span class="message-data-time">10:15 AM, Today</span>
+                            </div>
+                            <div class="message my-message">Project has been already finished and I have results to show you.</div>
+                        </li>
+                    </ul>
+                </div>
+                
                 <div class="chat-message clearfix">
                     <div class="input-group mb-0">
                         <input id="id_placeholder1" type="text" class="form-control" placeholder="Enter user destination name here...">
@@ -342,12 +603,12 @@
 
 
                 <div>
-                    <img id="main" src="#" alt="your image2" />
+                    <img id="main" src="#" alt="your image2"  width="300" height="300" />
                 </div>
 
 
                 <div>
-                    <input id="holaaa" type='button' onclick="sendimage();"  />
+                    <input id="holaaa" value="enviar imagen" type='button' onclick="sendimage();"  />
                 </div>
 
             </div>
@@ -358,6 +619,23 @@
 
 
 <script type="text/javascript">
+
+    async function GetAllFriends() {
+
+        const rawResponse = await fetch('http://127.0.0.1:8080/API/look_friend/v1?id='+parseJwt(getCookie("token"))["_id"], {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer${getCookie("token")}`, // notice the Bearer before your token
+            },
+        });
+
+        const content = await rawResponse;
+
+        var data = await content.json();
+
+        return data;
+
+    }
 
     function getCookie(cName) {
       const name = cName + "=";
@@ -386,7 +664,7 @@
 
     async function myfunc(){
 
-        valueF = document.getElementById("addF").value;
+        /*valueF = document.getElementById("addF").value;
 
         clearIt()
 
@@ -394,7 +672,47 @@
 			method: 'GET',
 		});
 
-		const response = await resfetch;
+		const response = await resfetch;*/
+
+        /*<li class="clearfix">
+            <img src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="avatar">
+            <div class="about">
+                <div class="name">Christian Kelly</div>
+                <div class="status"> <i class="fa fa-circle offline"></i> left 10 hours ago </div>
+            </div>
+        </li>*/
+
+        var Lielement = document.createElement("li");
+        Lielement.className = "clearfix";
+
+        var elementimg = document.createElement("img");
+        elementimg.alt = "avatar";
+        elementimg.src = "https://bootdey.com/img/Content/avatar/avatar2.png";
+
+        var elementfirstdiv = document.createElement("div");
+        elementfirstdiv.className = "message-data";
+
+        var elementsecondtdiv = document.createElement("div");
+        elementsecondtdiv.className = "name";
+        elementsecondtdiv.appendChild(document.createTextNode("AAAA"));
+
+        var elementthriddiv = document.createElement("div");
+        elementthriddiv.className = "status";
+
+        var elementI = document.createElement("i");
+        elementI.className = "fa fa-circle offline";
+
+        elementthriddiv.appendChild(elementI);
+        elementthriddiv.appendChild(document.createTextNode(" left 7 mins ago"));
+
+        elementfirstdiv.appendChild(elementsecondtdiv);
+        elementfirstdiv.appendChild(elementthriddiv);
+
+        Lielement.appendChild(elementimg);
+        Lielement.appendChild(elementfirstdiv);
+
+        var divmodifed = document.getElementById("listaamigos");
+        divmodifed.appendChild(Lielement);
     }
 
 </script>
