@@ -368,7 +368,7 @@
             // To print or store the binary data, you may convert it to hex
             var encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes);
 
-            if (encryptedHex.length > 2000000){
+            if (encryptedHex.length > 20000){
                 alert("El mensaje es demasiado grande");
                 return;
             }else{
@@ -394,7 +394,7 @@
 
             var msgImgaeLen = youtubeimgsrc.src.length
 
-            var step = 1000000;
+            var step = 200000;
 
             const utf8Encode = new TextEncoder();
 
